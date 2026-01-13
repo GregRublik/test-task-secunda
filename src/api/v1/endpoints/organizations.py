@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.sql.annotation import Annotated
 
 from services.organization import OrganizationService
@@ -11,10 +11,14 @@ router = APIRouter()
 
 @router.get("/organizations", response_model=List[OrganizationResponse])
 async def get_organizations(
+
     organization_service: Annotated[OrganizationService, Depends(get_organization_service)],
-    authorized: bool = Depends(verify_api_key),
+    authorized: Annotated[bool, Depends(verify_api_key)],
 ):
-    pass
+    if authorized:
+        return await organization_service.get_organizations()
+
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
 
 @router.get("/organizations/{organization_id}", response_model=OrganizationResponse)
 async def get_organization(

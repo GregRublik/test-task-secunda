@@ -14,13 +14,11 @@ class OrganizationCreate(OrganizationBase):
     activity_ids: List[int] = []
 
 
-
 class OrganizationUpdate(BaseModel):
     name: Optional[str] = None
     building_id: Optional[int] = None
     phone_numbers: Optional[List[str]] = None
     activity_ids: Optional[List[int]] = None
-
 
 
 class OrganizationResponse(BaseModel):
