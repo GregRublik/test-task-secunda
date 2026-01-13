@@ -35,6 +35,7 @@ class DbSettings(BaseSettings):
 class Settings(BaseSettings):
     port: int
     host: str
+    api_key: str
 
     db: DbSettings
 
