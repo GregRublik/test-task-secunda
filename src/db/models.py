@@ -1,7 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table, ARRAY
 from sqlalchemy.orm import relationship, declarative_base
-
-Base = declarative_base()
+from db.database import Base
 
 # Таблица для связи многие-ко-многим между Организациями и Деятельностями
 organization_activity = Table(
@@ -10,14 +9,6 @@ organization_activity = Table(
     Column('organization_id', Integer, ForeignKey('organizations.id')),
     Column('activity_id', Integer, ForeignKey('activities.id'))
 )
-#
-# # Таблица для связи многие-ко-многим между Организациями и Телефонами
-# organization_phone = Table(
-#     'organization_phone',
-#     Base.metadata,
-#     Column('organization_id', Integer, ForeignKey('organizations.id')),
-#     Column('phone_id', Integer, ForeignKey('phones.id'))
-# )
 
 
 class Building(Base):
@@ -34,17 +25,6 @@ class Building(Base):
 
     def __repr__(self):
         return f"<Building {self.address}>"
-
-
-class Phone(Base):
-    """Модель Телефона"""
-    __tablename__ = 'phones'
-
-    id = Column(Integer, primary_key=True, index=True)
-    phone_number = Column(String(50), nullable=False, unique=True)
-
-    def __repr__(self):
-        return f"<Phone {self.phone_number}>"
 
 
 class Activity(Base):
@@ -78,6 +58,7 @@ class Organization(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(300), nullable=False)
     building_id = Column(Integer, ForeignKey('buildings.id'), nullable=False)
+    phone_numbers = Column(ARRAY(String), nullable=False, default=[])  # Массив телефонов
 
     # Связи
     building = relationship("Building", back_populates="organizations")
@@ -87,12 +68,6 @@ class Organization(Base):
         secondary=organization_activity,
         back_populates="organizations"
     )
-
-    # phones = relationship(
-    #     "Phone",
-    #     secondary=organization_phone,
-    #     cascade="all, delete"
-    # )
 
     def __repr__(self):
         return f"<Organization {self.name}>"
