@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
-from sqlalchemy import insert, select, update, delete
+from sqlalchemy import insert, select, update, delete, and_
+from typing import Dict, Any, Optional
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -44,11 +45,34 @@ class SQLAlchemyRepository(AbstractRepository):
         except IntegrityError:
             raise ModelAlreadyExistsException
 
-    async def find_all(self, session: AsyncSession, data: dict):
-        stmt = select(self.model).where(**data)
+    async def find_all(self, session: AsyncSession, filters: Optional[Dict[str, Any]] = None):
+        stmt = select(self.model)
+
+        if filters:
+            # Фильтруем только те ключи, которые существуют в модели
+            valid_filters = {}
+            for key, value in filters.items():
+                if hasattr(self.model, key) and value is not None:
+                    valid_filters[key] = value
+
+            # Создаем условия для WHERE
+            if valid_filters:
+                conditions = []
+                for key, value in valid_filters.items():
+                    conditions.append(getattr(self.model, key) == value)
+
+                if conditions:
+                    stmt = stmt.where(*conditions)
+
+        res = await session.execute(stmt)
+        rows = res.all()
+        return [row[0] for row in rows] if rows else []
+
+    async def get_by_id(self, session: AsyncSession, obj_id: int):
+        stmt = select(self.model).where(self.model.id == obj_id)
         try:
             res = await session.execute(stmt)
-            return [row[0].to_read_model() for row in res.all()]
+            return res.scalar_one()
         except NoResultFound:
             raise ModelNoFoundException
 

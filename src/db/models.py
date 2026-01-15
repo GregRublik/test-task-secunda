@@ -37,8 +37,18 @@ class Activity(Base):
     parent_id = Column(Integer, ForeignKey('activities.id'), nullable=True)
 
     # Рекурсивная связь для древовидной структуры
-    parent = relationship("Activity", remote_side=[id], back_populates="children")
-    children = relationship("Activity", back_populates="parent", cascade="all, delete-orphan")
+    parent = relationship(
+        "Activity",
+        remote_side=[id],
+        back_populates="children",
+        lazy="raise"  # Добавить эту строку
+    )
+    children = relationship(
+        "Activity",
+        back_populates="parent",
+        cascade="all, delete-orphan",
+        lazy="raise"  # Добавить эту строку
+    )
 
     # Связь с организациями
     organizations = relationship(
@@ -61,12 +71,17 @@ class Organization(Base):
     phone_numbers = Column(ARRAY(String), nullable=False, default=[])  # Массив телефонов
 
     # Связи
-    building = relationship("Building", back_populates="organizations")
+    building = relationship(
+        "Building",
+        back_populates="organizations",
+        lazy="selectin"
+    )
 
     activities = relationship(
         "Activity",
         secondary=organization_activity,
-        back_populates="organizations"
+        back_populates="organizations",
+        lazy="selectin"
     )
 
     def __repr__(self):
