@@ -59,3 +59,27 @@ class SQLAlchemyRepository(AbstractRepository):
             return res.scalar_one()
         except NoResultFound:
             raise ModelNoFoundException
+
+    async def change_one(self, session: AsyncSession, data: dict):
+        obj_id = data.pop('id')
+
+        stmt = (
+            update(self.model)
+            .where(self.model.id == obj_id)
+            .values(**data)
+            .returning(self.model)
+        )
+
+        try:
+            res = await session.execute(stmt)
+            updated_obj = res.scalar_one()
+            await session.commit()
+            return updated_obj
+        except NoResultFound:
+            await session.rollback()
+            raise ModelNoFoundException
+        except IntegrityError:
+            await session.rollback()
+            raise ModelAlreadyExistsException
+
+
