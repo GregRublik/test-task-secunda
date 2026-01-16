@@ -12,6 +12,9 @@ COPY . .
 ENV PYTHONPATH=/app/src
 
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i '1s/^\xEF\xBB\xBF//' /entrypoint.sh \
+ && sed -i 's/\r$//' /entrypoint.sh \
+ && chmod +x /entrypoint.sh
+
 
 ENTRYPOINT ["/entrypoint.sh"]
