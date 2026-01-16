@@ -15,6 +15,8 @@ RUN uv pip install --system .
 # Копируем остальные файлы проекта
 COPY . .
 
-CMD alembic revision --autogenerate -m 'initial' && alembic upgrade head
+# entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-CMD python src/main.py
+ENTRYPOINT ["/entrypoint.sh"]
