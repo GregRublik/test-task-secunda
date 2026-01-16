@@ -7,3 +7,7 @@ class ModelAlreadyExistsException(BaseException):
 
 class ModelNoFoundException(BaseException):
     pass
+
+class ActivityValidationError(Exception):
+    """Исключение для валидации активности"""
+    pass

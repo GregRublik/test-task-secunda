@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Table, ARRAY
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship, declarative_base, validates
+from exceptions import ActivityValidationError
 from db.database import Base
 
 # Таблица для связи многие-ко-многим между Организациями и Деятельностями
@@ -35,6 +36,26 @@ class Activity(Base):
     name = Column(String(200), nullable=False)
     level = Column(Integer, default=1)  # Уровень вложенности
     parent_id = Column(Integer, ForeignKey('activities.id'), nullable=True)
+
+    @validates('level')
+    def validate_level(self, key, level):
+        """Валидация уровня - максимум 3"""
+        if level > 3:
+            raise ActivityValidationError("Уровень активности не может быть больше 3")
+        return level
+
+    @validates('parent_id')
+    def validate_parent(self, key, parent_id):
+        """Валидация родителя для контроля вложенности"""
+        if parent_id:
+            # Проверяем, что родитель не имеет уровень 3
+            from sqlalchemy.orm import Session
+            session = Session.object_session(self)
+            if session:
+                parent = session.query(Activity).get(parent_id)
+                if parent and parent.level >= 3:
+                    raise ActivityValidationError("Нельзя создать дочернюю активность для уровня 3")
+        return parent_id
 
     # Рекурсивная связь для древовидной структуры
     parent = relationship(

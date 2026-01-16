@@ -22,7 +22,7 @@ async def get_organizations(
     building_id: Optional[int] = None,
     activity_id: Optional[int] = None,
     name: Optional[str] = None,
-    activity_search: Optional[str] = None,
+    # activity_search: Optional[str] = None,
     include_subactivities: bool = False
 ):
     """
@@ -33,8 +33,6 @@ async def get_organizations(
     :param activity_id: id деятельности
 
     :param name: название организации
-
-    :param activity_search:
 
     :param include_subactivities:  связанные поддеятельностью
 
@@ -50,8 +48,6 @@ async def get_organizations(
             filters['activity_id'] = activity_id
         if name:
             filters['name'] = name
-        if activity_search:
-            filters['activity_search'] = activity_search
         filters['include_subactivities'] = include_subactivities
 
         return await organization_service.get_organizations(filters)
